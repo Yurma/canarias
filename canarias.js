@@ -83,6 +83,7 @@ class Canarias {
     }
 
     action = (value) => {
+        if(value === this.value) return;
         this.value = value;
         for(const node of this.nodes) {
             node.textContent = value; 

@@ -25,17 +25,29 @@ function createElement(obj) {
         return element;
     }
 
-    return null;
+    return new HTMLElement;
 }
 
-function removeChildren(node) {
-    while(node.firstChild) {
-        node.removeChild(node.lastChild)
+function removeChildren(parentNode) {
+    if(parentNode instanceof HTMLElement) {
+        while(parentNode.firstChild) {
+            parentNode.removeChild(parentNode.lastChild)
+        }
     }
 }
 
 function removeChild(parentNode, node) {
-    for(const child of parentNode.childNodes){
-        if (node.isEqualNode(child)) parentNode.removeChild(child);
+    if(parentNode instanceof HTMLElement && node instanceof HTMLElement) {
+        for(const child of parentNode.childNodes){
+            if (node.isEqualNode(child)) parentNode.removeChild(child);
+        }
+    }
+}
+
+function conditionRender (condition, parentNode, node) {
+    console.log(condition);
+    if (parentNode instanceof HTMLElement && node instanceof HTMLElement) removeChild(parentNode, node);
+    if(condition) {
+        parentNode.appendChild(node);
     }
 }
