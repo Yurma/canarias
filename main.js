@@ -12,15 +12,28 @@
                     events: {"keyup": (event) => y1.action(event.target.value)},
                 },
                 {
+                    type: "component",
+                    condition: () => createCondition(store.y.val[0].value === "Nice"),
+                    component: ShowComponent(),
+                    store: y1,
+                    track: true
+                },
+                {
                     type: "span",
-                    track: y1.track
+                    text: y1.value,
+                    store: y1, 
+                    track: true
                 }
             ]
         })
     }
 
     const ShowComponent = function(store) {
-        return createElement()
+        return createElement({
+            type: "TEXT_ELEMENT",
+            text: "OOOO",
+            class: "show"
+        });
     }
     
     namespace.renderTree = function (store) {

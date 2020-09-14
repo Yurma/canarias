@@ -1,7 +1,9 @@
 function createElement(obj) {
-    if (obj.type) {
-        let element = document.createElement(obj.type);
+    if (obj && obj.type) {
+        let element = document.createTextNode("");
+        if (obj.type !== "TEXT_ELEMENT" && obj.type !== "component") element = document.createElement(obj.type);
         if(obj.type === "TEXT_ELEMENT") element = document.createTextNode(obj.value);
+        if(obj.type === "component" && obj.component) element = obj.component.cloneNode();
         if(obj.class) element.className = obj.class;
         if(typeof(obj.attributes) === "object") {
             for(const [name, value] of Object.entries(obj.attributes)) {
@@ -14,18 +16,25 @@ function createElement(obj) {
                 element.addEventListener(name, callback);
             }
         }
+        if(obj.track) obj.store.track(element);
+        if(obj.text) element.textContent = obj.text;
         if(Array.isArray(obj.children)) {
             for(const child of obj.children) {
-                element.appendChild(createElement(child));
+                if(typeof(child.condition) === "function", child.track && child.type === "component") {
+                    child.store.addCondition(child.condition, () => {
+                        const parent = element.parentNode;
+                        removeChildren(parent);
+                        parent.appendChild(createElement(obj));
+                    }, () => removeChild(element, createElement(child)));
+                }
+                if((typeof(child.condition) === "function" && child.condition()) || !child.condition) element.appendChild(createElement(child));
             }
         }
-        if(obj.track) obj.track(element);
-        if(obj.text) element.textContent = obj.text;
 
         return element;
     }
 
-    return new HTMLElement;
+    return document.createTextNode("");
 }
 
 function removeChildren(parentNode) {
@@ -37,7 +46,7 @@ function removeChildren(parentNode) {
 }
 
 function removeChild(parentNode, node) {
-    if(parentNode instanceof HTMLElement && node instanceof HTMLElement) {
+    if(parentNode instanceof HTMLElement && (node instanceof HTMLElement || node instanceof Text)) {
         for(const child of parentNode.childNodes){
             if (node.isEqualNode(child)) parentNode.removeChild(child);
         }
@@ -45,9 +54,12 @@ function removeChild(parentNode, node) {
 }
 
 function conditionRender (condition, parentNode, node) {
-    console.log(condition);
     if (parentNode instanceof HTMLElement && node instanceof HTMLElement) removeChild(parentNode, node);
     if(condition) {
         parentNode.appendChild(node);
     }
+}
+
+function createCondition (condition) {
+    return !!condition;
 }

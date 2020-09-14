@@ -1,26 +1,59 @@
 class Canarias {
     constructor(value) {
         this.nodes = [];
+        this.compareNodes = [];
+        this.conditions = [];
         this.components = [];
         this._value = value || "";
         return this._value;
     }
 
+    addCondition = (condition, callback, elseCallback) => {
+        this.removeCondition(condition, callback, elseCallback)
+        console.log(condition, callback, elseCallback);
+        this.conditions.push({
+            condition,
+            callback,
+            elseCallback
+        })
+    }
+
+    removeCondition = (condition, callback, elseCallback) => {
+        this.conditions = this.conditions.filter(
+            (x) => x.condition != condition && x.callback != callback && x.elseCallback != elseCallback
+        )
+    }
+
     track = (node) => {
+        this.untrack(node);
         if (node instanceof HTMLElement) {
             this.nodes.push(node);
-            node.textContent = this._value;
         }
         if (typeof(node) === "function") this.components.push(node);
     }
 
     untrack = (removeNode) => {
-        this.nodes.filter(
+        if (removeNode instanceof HTMLElement) this.nodes = this.nodes.filter(
             (node) => node !== removeNode
         );
-        if (typeof(node) === "function") this.components.filter(
+        if (typeof(node) === "function") this.components =  this.components.filter(
             (node) => node !== removeNode
         );
+    }
+
+    addCompare = (node) => {
+        if (node instanceof HTMLElement) {
+            this.compareNodes.push(node);
+        }
+    }
+
+    compareNode = (node, newNode) => {
+        console.log("Wo")
+        if (node instanceof HTMLElement) {
+            for(const n of this.compareNodes) {
+                if(n.isEqualNode(node)) console.log(n.parentNode, node.parentNode);
+            }
+        }
     }
 
     get val() {
@@ -83,13 +116,22 @@ class Canarias {
     }
 
     action = (value) => {
+        let oldValue = this.value;
         if(value === this.value) return;
         this.value = value;
         for(const node of this.nodes) {
-            node.textContent = value; 
+            if(oldValue === node.textContent) node.textContent = value; 
+            if(oldValue === node.value) node.value = value;
         }
         for(const component of this.components) {
             component();
+        }
+        for(const condObject of this.conditions) {
+            if(condObject.condition()) {
+                condObject.callback();
+            }else {
+                condObject.elseCallback();
+            }
         }
     }
 }
