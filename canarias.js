@@ -9,8 +9,6 @@ class Canarias {
     }
 
     addCondition = (condition, callback, elseCallback) => {
-        this.removeCondition(condition, callback, elseCallback)
-        console.log(condition, callback, elseCallback);
         this.conditions.push({
             condition,
             callback,
@@ -18,9 +16,9 @@ class Canarias {
         })
     }
 
-    removeCondition = (condition, callback, elseCallback) => {
+    removeCondition = (condition) => {
         this.conditions = this.conditions.filter(
-            (x) => x.condition != condition && x.callback != callback && x.elseCallback != elseCallback
+            (x) => x !== condition
         )
     }
 
@@ -48,7 +46,6 @@ class Canarias {
     }
 
     compareNode = (node, newNode) => {
-        console.log("Wo")
         if (node instanceof HTMLElement) {
             for(const n of this.compareNodes) {
                 if(n.isEqualNode(node)) console.log(n.parentNode, node.parentNode);
@@ -58,6 +55,34 @@ class Canarias {
 
     get val() {
         return this._value;
+    }
+
+    valueM = () => {
+        let currVal = this._value;
+        let val = this._value;
+        if (typeof(val) === "object") {
+            let valFun = (val) => {
+                if(Array.isArray(val)) {
+                    let newVal = [];
+                    for (const v of val) {
+                        if (typeof(v) === "object" && !(v instanceof Canarias)) newVal.push(valFun(v));
+                        else newVal.push(v._value);
+                    }
+                    return newVal;
+                } else if (!(val instanceof Canarias) && typeof(val) !== "string" && typeof(val) !== "number" && typeof(val) !== "boolean") {
+                    let newVal = {};
+                    for (const [key, value] of Object.entries(val)) {
+                        if (Array.isArray(value)) newVal[key] = valFun(value);
+                        else if (value instanceof Canarias) newVal[key] = valFun(value._value);
+                        else newVal[key] = value;
+                    }
+                    return newVal;
+                } 
+                return val;
+            };
+            currVal = valFun(val)
+        }
+        return currVal;
     }
 
     get value() {
@@ -128,6 +153,7 @@ class Canarias {
         }
         for(const condObject of this.conditions) {
             if(condObject.condition()) {
+                this.removeCondition(condObject)
                 condObject.callback();
             }else {
                 condObject.elseCallback();
