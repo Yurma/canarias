@@ -1,12 +1,11 @@
 (function (namespace) {
 
-    const AppComponent = function(store, parentNode) {
-        let y1 = store.y.val[0];
+    const AppComponent = function(props) {
+        const store = props.store;
         return createElement({
             type: "div",
             class: "App",
-            store: store,
-            parentNode,
+            props: props,
             component: AppComponent,
             children: [
                 {
@@ -18,13 +17,13 @@
                     type: "component",
                     condition: () => createCondition(store.y.val[0].value === "Nice"),
                     component: ShowComponent(store.y.val[0]),
-                    store: store.y.val[0],
+                    props: {store: store.y.val[0]},
                     track: true
                 },
                 {
                     type: "span",
                     text: store.y.val[0].value,
-                    store: store.y.val[0], 
+                    props: {store: store.y.val[0]}, 
                     track: true
                 },
                 {
@@ -38,7 +37,7 @@
         })
     }
 
-    const ShowComponent = function(store) {
+    const ShowComponent = function({store}) {
         return createElement({
             type: "TEXT_ELEMENT",
             text: "store.value",
@@ -48,8 +47,8 @@
     
     namespace.renderTree = function (store) {
         removeChildren(this);
-        this.appendChild(AppComponent(store));
-        store.y.val[0].track(() => conditionRender(store.y.val[0].value == "Texst", this, ShowComponent(store.y.val[0])));
+        this.appendChild(AppComponent({store}));
+        store.y.val[0].track(() => conditionRender(store.y.val[0].value == "Texst", this, ShowComponent({store: store.y.val[0]})));
 
     }
 })(window.namespace = window.namespace || {})

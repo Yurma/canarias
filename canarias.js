@@ -153,10 +153,10 @@ class Canarias {
         }
         for(const condObject of this.conditions) {
             if(condObject.condition()) {
-                this.removeCondition(condObject)
                 condObject.callback();
             }else {
                 condObject.elseCallback();
+                console.log(this.conditions)
             }
         }
     }
