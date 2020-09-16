@@ -39,20 +39,6 @@ class Canarias {
         );
     }
 
-    addCompare = (node) => {
-        if (node instanceof HTMLElement) {
-            this.compareNodes.push(node);
-        }
-    }
-
-    compareNode = (node, newNode) => {
-        if (node instanceof HTMLElement) {
-            for(const n of this.compareNodes) {
-                if(n.isEqualNode(node)) console.log(n.parentNode, node.parentNode);
-            }
-        }
-    }
-
     get val() {
         return this._value;
     }
@@ -156,7 +142,6 @@ class Canarias {
                 condObject.callback();
             }else {
                 condObject.elseCallback();
-                console.log(this.conditions)
             }
         }
     }

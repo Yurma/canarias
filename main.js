@@ -27,9 +27,12 @@
                     track: true
                 },
                 {
-                    type: "div",
+                    type: "ul",
+                    condition: () => createCondition(store.y.val[0].value === "Nice"),
+                    track: true,
+                    props: {store: store.y.val[0]},
                     children: store.maps.map(x => ({
-                        type: "span",
+                        type: "li",
                         text: x
                     }))
                 }

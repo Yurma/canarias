@@ -20,14 +20,21 @@ function createElement(obj, parentNode) {
         if(obj.text) element.textContent = obj.text;
         if(Array.isArray(obj.children)) {
             for(const child of obj.children) {
-                if(typeof(child.condition) === "function", child.track && child.type === "component" && !obj.props.compare) {
+                if(typeof(child.condition) === "function" && child.track && !obj.props.compare) {
                     child.props.store.addCondition(child.condition, () => {
                         let componentFunc = document.createTextNode("");
                         const elemProps = {
                             ...obj.props,
                             compare: true
                         }
-                        if(obj.component) componentFunc = obj.component(elemProps);
+                        const newObj = {
+                            ...obj,
+                            props: {
+                                ...obj.props,
+                                compare: true
+                            }
+                        }
+                        if(obj.component) componentFunc = obj.component(elemProps) || createElement(newObj);
                         compareNodes(componentFunc, element);
                         //removeChildren(parent);
                         //parent.appendChild(componentFunc);
@@ -56,7 +63,7 @@ function removeChildren(parentNode) {
 function removeChild(parentNode, node) {
     if(parentNode instanceof HTMLElement && (node instanceof HTMLElement || node instanceof Text)) {
         for(const child of parentNode.childNodes){
-            if (node.isEqualNode(child)) console.log("Delete", parentNode.removeChild(child));
+            if (node.isEqualNode(child)) parentNode.removeChild(child);
         }
     }
 }
@@ -64,10 +71,8 @@ function removeChild(parentNode, node) {
 function conditionRender (condition, parentNode, node) {
     if (parentNode instanceof HTMLElement && (node instanceof HTMLElement || node instanceof Text)) removeChild(parentNode, node);
     if(condition) {
-        console.log("DO: ", parentNode, node)
         parentNode.appendChild(node);
     } else {
-        console.log("DONT: ", [parentNode], node)
         removeChild(parentNode, node)
     }
 }
@@ -81,10 +86,11 @@ function compareNodes (node1, node2) {
         let i = 0;
         while(node1.childNodes.length !== node2.childNodes.length) {
             if(isEqualNode(node1.childNodes[i], node2.childNodes[i])) {
-                i++;
+                if(node1.childNodes[i] && node2.childNodes[i] && node1.childNodes[i].childNodes.length !== node2.childNodes[i].childNodes.length) compareNodes(node1.childNodes[i], node2.childNodes[i]); 
+                ++i;
             } else {
-                node2.insertBefore(node1.childNodes[i].cloneNode(), node2.childNodes[i]);
-                i--;
+                node2.insertBefore(node1.childNodes[i].cloneNode([true]), node2.childNodes[i]);
+                --i;
             }
         }
     }
