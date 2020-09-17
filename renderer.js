@@ -22,27 +22,51 @@ function createElement(obj, parentNode) {
             for(const child of obj.children) {
                 if(typeof(child.condition) === "function" && child.track && !obj.props.compare) {
                     child.props.store.addCondition(child.condition, () => {
-                        let componentFunc = document.createTextNode("");
-                        const elemProps = {
-                            ...obj.props,
-                            compare: true
+                        if(child.elseComponent instanceof HTMLElement || child.elseComponent instanceof Text) {
+                            if(childOf(element, child.elseComponent())) element.replaceChild(createElement(child).cloneNode([true]), findChild(element, child.elseComponent()));
                         }
-                        const newObj = {
-                            ...obj,
-                            props: {
+                        else if(child.elseComponent){
+                            if(childOf(element, createElement(child.elseComponent))) element.replaceChild(createElement(child).cloneNode([true]), findChild(element, createElement(child.elseComponent)));
+                        }
+                        else {
+                            let componentFunc = document.createTextNode("");
+                            const elemProps = {
                                 ...obj.props,
                                 compare: true
                             }
+                            const newObj = {
+                                ...obj,
+                                props: {
+                                    ...obj.props,
+                                    compare: true
+                                }
+                            }
+                            if(obj.component) componentFunc = obj.component(elemProps) || createElement(newObj);
+                            compareNodes(componentFunc, element);
                         }
-                        if(obj.component) componentFunc = obj.component(elemProps) || createElement(newObj);
-                        compareNodes(componentFunc, element);
                         //removeChildren(parent);
                         //parent.appendChild(componentFunc);
                     }, () => {
-                        removeChild(element, createElement(child, parentNode))
+                        if(child.elseComponent instanceof HTMLElement || child.elseComponent instanceof Text) {
+                            if(childOf(element, createElement(child))) element.replaceChild(child.elseComponent().cloneNode([true]), findChild(element, createElement(child)));
+                        }
+                        else if(child.elseComponent){
+                            if(childOf(element, createElement(child))) element.replaceChild(createElement(child.elseComponent), findChild(element, createElement(child)));
+                        }
+                        else {
+                            removeChild(element, createElement(child, parentNode))
+                        }
                     });
                 }
-                if((typeof(child.condition) === "function" && child.condition()) || !child.condition) element.appendChild(createElement(child, element));
+                if((typeof(child.condition) === "function" && child.condition()) || !child.condition) element.appendChild(createElement(child, element))
+                else if((typeof(child.condition) === "function" && !child.condition()) || child.elseComponent) {
+                    if(child.elseComponent instanceof HTMLElement || child.elseComponent instanceof Text) {
+                        element.appendChild(child.elseComponent());
+                    }
+                    else {
+                        element.appendChild(createElement(child.elseComponent))
+                    }
+                }
             }
         }
 
@@ -50,6 +74,23 @@ function createElement(obj, parentNode) {
     }
 
     return document.createTextNode("");
+}
+
+function findChild(parentNode, node) {
+    if(parentNode instanceof HTMLElement && (node instanceof HTMLElement || node instanceof Text)) {
+        for(const child of parentNode.childNodes){
+            if (node.isEqualNode(child)) return child;
+        }
+    }
+}
+
+function childOf(parentNode, node) {
+    if(parentNode instanceof HTMLElement && (node instanceof HTMLElement || node instanceof Text)) {
+        for(const child of parentNode.childNodes){
+            if (node.isEqualNode(child)) return true;
+        }
+    }
+    return false;
 }
 
 function removeChildren(parentNode) {
@@ -84,7 +125,12 @@ function createCondition (condition) {
 function compareNodes (node1, node2) {
     if(typeof(node1.childNodes.length) === "number" && typeof(node2.childNodes.length) === "number"){ 
         let i = 0;
-        while(node1.childNodes.length !== node2.childNodes.length) {
+        while(node1.childNodes.length !== node2.childNodes.length || !equalChildren(node1, node2)) {
+            if(node1.childNodes.length === node2.childNodes.length && !equalChildren(node1, node2)) {
+                if(!isEqualNode(node1.childNodes[i], node2.childNodes[i])) node2.replaceChild(node1.childNodes[i].cloneNode([true]), node2.childNodes[i]) 
+                i++;
+                continue;
+            } 
             if(isEqualNode(node1.childNodes[i], node2.childNodes[i])) {
                 if(node1.childNodes[i] && node2.childNodes[i] && node1.childNodes[i].childNodes.length !== node2.childNodes[i].childNodes.length) compareNodes(node1.childNodes[i], node2.childNodes[i]); 
                 ++i;
@@ -97,6 +143,18 @@ function compareNodes (node1, node2) {
     return node2;
 }
 
+function equalChildren(node1, node2) {
+    if(!node1 && !node2) return true;
+    if(!node1 !== !node2) return false;
+    if(node1.childNodes.length !== node2.childNodes.length) return false;
+    let i = 0;
+    while(i < node1.childNodes.length) {
+        if(!isEqualNode(node1.childNodes[i], node2.childNodes[i])) return false;
+        i++;
+    }
+    return true;
+}
+
 function isEqualNode(node1, node2) {
     let bool = true;
     if(!node1 && !node2) return bool;
@@ -104,6 +162,7 @@ function isEqualNode(node1, node2) {
     if(node1.localName !== node2.localName 
     || node1.nodeName !== node2.nodeName
     || node1.nodeType !== node2.nodeType
+    || node1.textContent !== node2.textContent
     || node1.namespaceURI !== node2.namespaceURI) bool = false;
     if(node1.attributes && node2.attributes 
     && (node1.attributes.id !== node2.attributes.id

@@ -132,7 +132,7 @@ class Canarias {
         this.value = value;
         for(const node of this.nodes) {
             if(oldValue === node.textContent) node.textContent = value; 
-            if(oldValue === node.value) node.value = value;
+            if(oldValue === node.value) node.setAttribute("value", value)
         }
         for(const component of this.components) {
             component();

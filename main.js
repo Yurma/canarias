@@ -17,6 +17,10 @@
                     type: "component",
                     condition: () => createCondition(store.y.val[0].value === "Nice"),
                     component: ShowComponent(store.y.val[0]),
+                    elseComponent: {
+                        type: "span",
+                        text: "Cool"
+                    },
                     props: {store: store.y.val[0]},
                     track: true
                 },
