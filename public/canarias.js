@@ -165,7 +165,8 @@
                                         compare: true
                                     }
                                 }
-                                if(obj.component) componentFunc = obj.component(elemProps) || createElement(newObj);
+                                if(obj.component) componentFunc = obj.component(elemProps);
+                                else componentFunc = createElement(newObj);
                                 compareNodes(componentFunc, element);
                             }
                             //removeChildren(parent);
@@ -249,6 +250,11 @@
     can.createCondition = function (condition) {
         return !!condition;
     }
+
+    const removeChildren = can.removeChildren;
+    const removeChild = can.removeChild;
+    const conditionRender = can.conditionRender;
+    const createCondition = can.createCondition;
     
     function compareNodes (node1, node2) {
         if(typeof(node1.childNodes.length) === "number" && typeof(node2.childNodes.length) === "number"){ 
@@ -259,7 +265,7 @@
                     i++;
                     continue;
                 } 
-                if(isEqualNode(node1.childNodes[i], node2.childNodes[i])) {
+                if(node1.childNodes.length !== node2.childNodes.length && isEqualNode(node1.childNodes[i], node2.childNodes[i])) {
                     if(node1.childNodes[i] && node2.childNodes[i] && node1.childNodes[i].childNodes.length !== node2.childNodes[i].childNodes.length) compareNodes(node1.childNodes[i], node2.childNodes[i]); 
                     ++i;
                 } else {

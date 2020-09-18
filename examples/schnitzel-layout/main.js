@@ -101,13 +101,53 @@
                         {
                             type: "div",
                             class: "posts",
-                            children: store.posts.map(post => ({
+                            props: props,
+                            children: [... store.posts.map(post => ({
                                 type: "component",
                                 component: Post,
                                 props: {
                                     "store": post
                                 }
-                            }))
+                            })), {
+                                type: "div",
+                                class: "card col-9 my-6",
+                                condition: () => c.createCondition(store.username.value == "Fran"),
+                                props: {"store": store.username},
+                                track: true,
+                                children: [
+                                    {
+                                        type: "div",
+                                        class: "f5 pr-5 mb-n3 mt-3 top-card",
+                                        children: [
+                                            {
+                                                type: "span",
+                                                class: "author mr-2",
+                                                track: true,
+                                                events: {"click": () => console.log(store)},
+                                                props: {
+                                                    "store": store.username
+                                                },
+                                                text: "Me"
+                                            }
+                                        ]
+                                    }, 
+                                    {
+                                        type: "div",
+                                        class: "card-body",
+                                        children: [
+                                            {
+                                                type: "h3",
+                                                text: "Thank you"
+                                            },
+                                            {
+                                                type: "div",
+                                                class: "f5 description",
+                                                text: "Very nice!!"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }]
                         }
                     ]
                 }
