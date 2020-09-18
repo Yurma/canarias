@@ -3,7 +3,7 @@ function createElement(obj, parentNode) {
         let element = document.createTextNode("");
         if (obj.type !== "TEXT_ELEMENT" && obj.type !== "component") element = document.createElement(obj.type);
         if(obj.type === "TEXT_ELEMENT") element = document.createTextNode(obj.value);
-        if(obj.type === "component" && obj.component) element = obj.component.cloneNode();
+        if(obj.type === "component" && typeof(obj.component) == "function") element = obj.component(obj.props);
         if(obj.class) element.className = obj.class;
         if(typeof(obj.attributes) === "object") {
             for(const [name, value] of Object.entries(obj.attributes)) {
@@ -66,6 +66,8 @@ function createElement(obj, parentNode) {
                     else {
                         element.appendChild(createElement(child.elseComponent))
                     }
+                } else {
+                	element.appendChild(createElement(child))
                 }
             }
         }
