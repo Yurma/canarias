@@ -137,7 +137,7 @@
                                         children: [
                                             {
                                                 type: "h3",
-                                                text: "Thank you"
+                                                text: "Thank you {{ 'store.username' }} {{ 'two' }} "
                                             },
                                             {
                                                 type: "div",

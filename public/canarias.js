@@ -141,7 +141,9 @@
                 }
             }
             if(obj.track && obj.props && obj.props.store) obj.props.store.track(element);
-            if(obj.text) element.textContent = obj.text;
+            if(obj.text) {
+                element.textContent = stringToScript(obj.text);
+            }
             if(Array.isArray(obj.children)) {
                 for(const child of obj.children) {
                     if(typeof(child.condition) === "function" && child.track && !obj.props.compare) {
@@ -255,7 +257,17 @@
     const removeChild = can.removeChild;
     const conditionRender = can.conditionRender;
     const createCondition = can.createCondition;
-    
+
+    function stringToScript(string) {
+	    let newStr = string;
+	    while((newStr.indexOf("{{") !== -1) && (newStr.indexOf("}}") !== -1)){
+	        let sub = newStr.substring(newStr.indexOf("{{") + 2, newStr.indexOf("}}"));
+	        let full = "{{" + sub + "}}";
+	        newStr = newStr.replace(full, eval(sub));
+	    }
+	    return newStr;
+	}
+
     function compareNodes (node1, node2) {
         if(typeof(node1.childNodes.length) === "number" && typeof(node2.childNodes.length) === "number"){ 
             let i = 0;
