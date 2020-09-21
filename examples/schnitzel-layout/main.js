@@ -25,9 +25,9 @@
                     class: "header-item mr-5",
                     children: [
                         {
-                            type: "a",
+                            type: "button",
                             class: "btn btn-white btn-rounder explore-btn",
-                            attributes: {"href": "/explore"},
+                            events: {"click": () => store.test.action("Name")},
                             text: "Explore"
                         }
                     ]
@@ -137,7 +137,11 @@
                                         children: [
                                             {
                                                 type: "h3",
-                                                text: "Thank you {{ 'store.username' }} {{ 'two' }} "
+                                                class: "inspa",
+                                                props: {
+                                                    "store": store.test
+                                                },
+                                                text: `Thank you {{ '${store.test.value}' || track }} {{ 2 }} `
                                             },
                                             {
                                                 type: "div",

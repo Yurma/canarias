@@ -3,6 +3,7 @@
 
     namespace.Store = function Store() {
         this.username = new Canarias("Yurma");
+        this.test = new Canarias("Tesst");
         this.posts = new Canarias([
             {
                 "title": "This is so good",

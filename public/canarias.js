@@ -9,6 +9,10 @@
             this.value = value || "";
             return this._value;
         }
+
+        isCanarias()  {
+        	return true;
+        }
     
         addCondition = (condition, callback, elseCallback) => {
             this.conditions.push({
@@ -26,10 +30,12 @@
     
         track = (node) => {
             this.untrack(node);
-            if (node instanceof HTMLElement) {
+            console.log(node)
+            if (node instanceof HTMLElement || node instanceof Text) {
                 this.nodes.push(node);
             }
             if (typeof(node) === "function") this.components.push(node);
+            return true;
         }
     
         untrack = (removeNode) => {
@@ -102,6 +108,7 @@
         }
     
         action = (value) => {
+        	console.log(this.nodes)
             let oldValue = this.value;
             if(value === this.value) return;
             this.value = value;
@@ -123,6 +130,7 @@
     }
 
     can.createElement = function(obj, parentNode) {
+    	console.log(obj)
         if (obj && obj.type) {
             let element = document.createTextNode("");
             if (obj.type !== "TEXT_ELEMENT" && obj.type !== "component") element = document.createElement(obj.type);
@@ -141,9 +149,6 @@
                 }
             }
             if(obj.track && obj.props && obj.props.store) obj.props.store.track(element);
-            if(obj.text) {
-                element.textContent = stringToScript(obj.text);
-            }
             if(Array.isArray(obj.children)) {
                 for(const child of obj.children) {
                     if(typeof(child.condition) === "function" && child.track && !obj.props.compare) {
@@ -197,6 +202,14 @@
                         element.appendChild(createElement(child))
                     }
                 }
+            }
+            if(obj.text) {
+            	if(obj.type === "TEXT_ELEMENT"){
+            		element.textContent = obj.text;
+            	}else {
+            		if (obj.props && obj.props.store) nodeArray(element, stringToScript(obj.text, obj.props.store));
+                	else nodeArray(element, stringToScript(obj.text))
+            	}
             }
     
             return element;
@@ -258,14 +271,43 @@
     const conditionRender = can.conditionRender;
     const createCondition = can.createCondition;
 
-    function stringToScript(string) {
+    function textScript (string) {
+    	return Function(`'use strict'; return (${string})`)()
+    }
+
+    function nodeArray(element, array) {
+    	for(const node of array) {
+    		if (node instanceof HTMLElement || node instanceof Text) element.appendChild(node);
+    	}	
+    }
+
+    function stringToScript(string, store) {
+    	store && console.log(store.nodes)
 	    let newStr = string;
+	    let arr = [];
+	    if((newStr.indexOf("{{") === -1) && (newStr.indexOf("}}") === -1)) arr.push(document.createTextNode(newStr));
+	    else arr.push (document.createTextNode(newStr.substring(0, newStr.indexOf("{{"))));
 	    while((newStr.indexOf("{{") !== -1) && (newStr.indexOf("}}") !== -1)){
 	        let sub = newStr.substring(newStr.indexOf("{{") + 2, newStr.indexOf("}}"));
 	        let full = "{{" + sub + "}}";
-	        newStr = newStr.replace(full, eval(sub));
+	        newStr = newStr.replace(full, "");
+	        let txtNode = document.createTextNode(eval(sub));
+        	if(sub.indexOf("||") !== -1) {
+	        	let comms = sub.substring(sub.indexOf("||") + 2, sub.length);
+	        	comms = comms.split(" ").filter(x => x);
+	        	for (const comm of comms) {
+	        		switch(comm) {
+	        			case "track":
+	        				if(store instanceof can.Canarias) console.log(store.track(txtNode));
+	        				break;
+	        			default: 
+	        				console.log("Invalid command")
+	        		}
+	        	}
+	        }
+	        arr.push(txtNode);
 	    }
-	    return newStr;
+	    return arr;
 	}
 
     function compareNodes (node1, node2) {
